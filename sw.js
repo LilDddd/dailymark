@@ -1,4 +1,4 @@
-const CACHE='dailymark-v1';
+const CACHE='dailymark-v2';
 const FILES=[
   'index.html','workout-tracker.html','workout-tracker-warm.html',
   'manifest.json','icon-192.png','icon-512.png'
