@@ -1,0 +1,22 @@
+{
+  "name": "Daily MARK",
+  "short_name": "Daily MARK",
+  "description": "DD健身打卡记录",
+  "start_url": "app.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FAFAFA",
+  "theme_color": "#111111",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
