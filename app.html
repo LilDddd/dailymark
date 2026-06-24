@@ -286,6 +286,10 @@ function saveStats(){localStorage.setItem('dm_stats_v2',JSON.stringify(stats))}
 let statHistory={'2026-05-25':{weight:58.5,fat:37.5,muscle:19.5},'2026-05-30':{weight:58.0,fat:36.3,muscle:19.8},'2026-06-15':{weight:58.3,fat:35.9,muscle:19.9}};
 (function lh(){try{let v=localStorage.getItem('dm_stats_history_v2');if(v){let loaded=JSON.parse(v);if(Object.keys(loaded).length>=3)statHistory=loaded}}catch(e){}}());
 
+function goTrackerDay(ds){
+  localStorage.setItem('dm_goto_date',ds);
+  goTracker();
+}
 function renderHome(){
   let v=T(),dk=DK(v),plan=PLAN[dk],cks=L(ckK(v));
   let tagMap={gym:'gym',swim:'swim',dance:'dance',rest:'rest'};
@@ -378,6 +382,21 @@ function saveStatsModal(){
 // ═══════════ TRACKER ═══════════
 function renderTrk(){
   let v=V(),dk=DK(v),plan=PLAN[dk],cks=L(ckK(v)),bg=L(bgK(v));
+  // Water calc
+  let wc=0,tw=0;plan.items.forEach(function(it,i){if(it.icon==='喝水'){tw++;if(cks['t'+i])wc++;}});
+  let wm=wc*200,tm=tw*200,wp=tm>0?Math.round(wm/tm*100):0,rm=tm-wm,twY=90-(wp||0)/100*90;
+  var wbEl=document.getElementById('trkWaterBlock');
+  if(wbEl){
+    var bbl=document.getElementById('trkWbBubble'),bml=document.getElementById('trkWbMl'),bgl=document.getElementById('trkWbGoal');
+    if(bbl)bbl.textContent=rm<=0?'太棒了！':'还要喝 '+rm+'ml 哦';
+    if(bml)bml.textContent=wm+'ml';
+    if(bgl)bgl.textContent='目标 '+tm+'ml';
+    var wg=document.getElementById('appWg');if(wg)wg.style.transform='translateY('+twY+'px)';
+  }else{
+    var wH='<div id="trkWaterBlock" class="trk-water" style="background:#fff;border:1px solid #E8E8E8;padding:10px 14px;margin:0;border-bottom:1px solid #E8E8E8"><h3 style="font-size:13px;font-weight:500;color:#111;margin-bottom:6px;display:flex;align-items:center;gap:8px;text-transform:uppercase;letter-spacing:1px"><span style="width:6px;height:6px;border-radius:50%;background:#111"></span>今日喝水</h3><div style="display:flex;align-items:center;gap:10px"><div style="flex-shrink:0"><div id="trkWbBubble" style="background:#fff;color:#111;font-size:10px;padding:4px 8px;border-radius:8px;border:1px solid #111;margin-bottom:4px;white-space:nowrap">'+(rm<=0?'太棒了！':'还要喝 '+rm+'ml 哦')+'</div><img src="'+ILLUST['小新监督喝水']+'" style="width:68px;height:auto;display:block;margin:0 auto"></div><div style="flex:1;text-align:center"><div style="font-size:10px;color:#999;margin-bottom:2px">今日已喝</div><div id="trkWbMl" style="font-size:32px;font-weight:700;color:#111;font-family:SF Mono,Menlo,Consolas,monospace;letter-spacing:1px">'+wm+'ml</div><div id="trkWbGoal" style="font-size:11px;color:#999;margin-top:2px">目标 '+tm+'ml</div></div><div style="flex-shrink:0"><svg viewBox="0 0 90 130" width="70" height="100"><defs><clipPath id="appCup"><polygon points="20,24 70,24 65,108 25,108"/></clipPath></defs><polygon points="18,20 72,20 66,112 24,112" fill="#F5F9FC" stroke="#111" stroke-width="0.5" opacity=".6"/><g clip-path="url(#appCup)"><g style="transform:translateY(90px);transition:transform .7s ease" id="appWg"><rect x="18" y="20" width="54" height="92" fill="#6CB4D8" opacity=".85"/><path d="M18,40 Q30,32 42,40 Q54,48 72,40 L72,112 L18,112Z" fill="#8DD4EE" opacity=".5"/><path d="M18,45 Q34,37 48,45 Q60,53 72,45 L72,112 L18,112Z" fill="#A0DEF0" opacity=".35"/></g></g><ellipse cx="45" cy="20" rx="27" ry="5" fill="#F5F9FC" stroke="#111" stroke-width="0.5" opacity=".8"/><polyline points="18,20 24,112 66,112 72,20" fill="none" stroke="#111" stroke-width="0.5" opacity=".5"/></svg></div></div></div>';
+    var bb=document.getElementById('budgetBar');if(bb)bb.insertAdjacentHTML('afterend',wH);
+    setTimeout(function(){var g=document.getElementById('appWg');if(g)g.style.transform='translateY('+twY+'px)';},100);
+  }
   let d=new Date(+v.split('-')[0],+v.split('-')[1]-1,+v.split('-')[2]),showingT=isT();
   let h='';
   h+='<div class="trk-top-sticky">';
