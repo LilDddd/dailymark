@@ -129,7 +129,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sa
   </div>
 
   <div class="today-block">
-    <h3><span class="dot"></span>今日计划</h3>
+    <h3><span class="dot"></span>本月打卡</h3>
     <span class="today-tag" id="homeTag">加载中...</span>
     <div class="today-list" id="homeList">
       <div class="today-item"><span style="color:#8A8A8A;font-size:12px">加载中...</span></div>
@@ -334,11 +334,15 @@ function renderChart(){
   document.getElementById("chartBlock").innerHTML=svgH;
 }
 
+function goDay(ds){
+  var ifr=document.querySelector('iframe');
+  if(ifr) ifr.src='workout-tracker.html?d='+ds;
+}
 function renderHome(){
   let v=T(),dk=DK(v),plan=PLAN[dk],cks=L('ck_'+v);
   let tagMap={gym:'gym',swim:'swim',dance:'dance',rest:'rest'};
   let el=document.getElementById('homeTag');
-  el.className='today-tag '+tagMap[plan.type];el.textContent=plan.tag;
+  document.getElementById('homeTag').style.display='none';
 
   // Update stat cards
   document.getElementById('homeDate').textContent=new Date().toLocaleDateString('zh-CN',{month:'long',day:'numeric'})+' · '+WD[new Date().getDay()];
@@ -366,24 +370,38 @@ function renderHome(){
   for(let i=0;i<totalWater;i++)dots+='<div class="water-dot'+(i<waterCount?' filled':'')+'"></div>';
   document.getElementById('waterDots').innerHTML=dots;
 
+  // Month calendar
+  var MONTHS=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
   let list=document.getElementById('homeList'),h='';
-  plan.items.forEach((item)=>{
-    let done=!!cks['t'+item.tidx];
-    h+='<div class="today-item">';
-    let ic='ti-gym';if(item.icon==='早饭'||item.icon==='午饭')ic='ti-meal';else if(item.icon==='游泳')ic='ti-water';
-    let ico=TICONS[item.icon];h+='<div class="ti-icon '+ic+'">'+(ico?'<img src="'+ico+'" style="width:100%;height:100%;border-radius:50%;object-fit:cover">':item.icon)+'</div>';
-    h+='<div class="ti-info"><div class="ti-title">'+item.title+'</div><div class="ti-time">'+item.t+'</div></div>';
-    h+='<div class="ti-check'+(done?' done':'')+'">'+(done?'✓':'')+'</div>';
-    h+='</div>';
-  });
+  var now=new Date(),cy=now.getFullYear(),cm=now.getMonth();
+  var fd=new Date(cy,cm,1).getDay(),dim=new Date(cy,cm+1,0).getDate();
+  h+='<div style="text-align:center;font-size:12px;font-weight:600;color:#111;margin-bottom:8px">'+MONTHS[cm]+' '+cy+'</div>';
+  h+='<div class="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center">';
+  ['SUN','MON','TUE','WED','THU','FRI','SAT'].forEach(function(dn){h+='<div style="font-size:8px;color:#999;padding:2px 0">'+dn+'</div>';});
+  for(var i=0;i<fd;i++)h+='<div></div>';
+  for(var d=1;d<=dim;d++){
+    var ds=cy+'-'+String(cm+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    var isTd=ds===T(),isFt=ds>T();
+    var dayCks=L('ck_'+ds),dayDk=DK(ds),dayPlan=PLAN[dayDk];
+    var tot=dayPlan.items.length,don=dayPlan.items.filter(function(_,j){return dayCks['t'+j]}).length;
+    var bg='',tc='#111',dot='';
+    if(isTd){bg='background:#111;';tc='#fff';}
+    if(isFt){dot='<svg width=\"10\" height=\"10\"><circle cx=\"5\" cy=\"5\" r=\"4\" fill=\"none\" stroke=\"#E8E8E8\" stroke-width=\"1\"/></svg>'}
+    else if(don===tot){dot='<svg width=\"10\" height=\"10\"><circle cx=\"5\" cy=\"5\" r=\"4\" fill=\"'+ (isTd?'#fff':'#111') +'\"/></svg>'}
+    else if(don>0){dot='<svg width=\"10\" height=\"10\"><circle cx=\"5\" cy=\"5\" r=\"4\" fill=\"#999\"/></svg>'}
+    else{dot='<svg width=\"10\" height=\"10\"><circle cx=\"5\" cy=\"5\" r=\"4\" fill=\"none\" stroke=\"#E8E8E8\" stroke-width=\"1\"/></svg>'}
+    h+='<div style=\"'+bg+'padding:3px 0;cursor:pointer;border-radius:4px;font-size:10px;color:'+tc+'\" onclick=\"goDay(this.dataset.d)\" data-d=\"'+ds+'\"><span style=\"font-weight:'+(isTd?'700':'400')+'\">'+d+'</span><div style=\"margin-top:1px\">'+dot+'</div></div>';
+  }
+  h+='</div>';
   list.innerHTML=h;
 
-  let done=0,total=plan.items.length;
-  plan.items.forEach((item)=>{if(cks['t'+item.tidx])done++;});
-  let pct=total?Math.round(done/total*100):0;
+  // Progress
+  var pDone=0,pTot=plan.items.length;
+  plan.items.forEach(function(item){if(cks['t'+item.tidx])pDone++;});
+  var pct=pTot?Math.round(pDone/pTot*100):0;
   document.getElementById('homePct').textContent=pct+'%';
-  document.getElementById('homeDone').textContent=done+'/'+total+' 已完成';
-  let deg=pct/100*360;
+  document.getElementById('homeDone').textContent=pDone+'/'+pTot+' 已完成';
+  var deg=pct/100*360;
   document.querySelector('.prog-circle').style.background='conic-gradient(#111 0deg,#111 '+deg+'deg,#E8E8E8 '+deg+'deg)';
 }
 
